@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# --- Project-specific ---
+
+# Secrets and credentials
+*.p8
+*.pem
+
+# dbt generated files
+transform/target/
+transform/dbt_packages/
+transform/logs/
+
+# PyCharm settings
+.idea/
