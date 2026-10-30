@@ -233,3 +233,6 @@ transform/logs/
 
 # PyCharm settings
 .idea/
+
+# Local data files
+data/
