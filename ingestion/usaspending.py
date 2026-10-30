@@ -2,6 +2,7 @@
 
 import json
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 import httpx
 
@@ -10,6 +11,7 @@ REQUEST_FILE = Path(__file__).parent / "sample_grant_search.json"
 PAGE_SIZE = 100
 MAX_PAGES = 50
 PAUSE_SECONDS = 0.5
+OUTPUT_DIR = Path(__file__).parent.parent / "data" / "raw" / "usaspending"
 
 
 def fetch_page(client: httpx.Client, body: dict, page: int) -> dict:
@@ -40,6 +42,19 @@ def fetch_all(client: httpx.Client, body: dict) -> list[dict]:
 
     return records
 
+def save_records(records: list[dict], output_dir: Path) -> Path:
+    """Save records as JSON Lines, one record per line."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    extracted_at = datetime.now(timezone.utc)
+    path = output_dir / f"awards_{extracted_at:%Y%m%dT%H%M%SZ}.jsonl"
+
+    with path.open("w") as file:
+        for record in records:
+            row = {**record, "_extracted_at": extracted_at.isoformat()}
+            file.write(json.dumps(row) + "\n")
+
+    return path
+
 def main() -> None:
     body = json.loads(REQUEST_FILE.read_text())
 
@@ -47,6 +62,8 @@ def main() -> None:
         records = fetch_all(client, body)
 
     print(f"Total records: {len(records)}")
+    path = save_records(records, OUTPUT_DIR)
+    print(f"Saved to {path}")
 
 
 if __name__ == "__main__":
