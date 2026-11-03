@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import logging
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,6 +14,10 @@ OUTPUT_DIR = Path(__file__).parent.parent / "data" / "raw" / "usaspending"
 PAGE_SIZE = 100
 MAX_PAGES = 50
 PAUSE_SECONDS = 0.5
+MAX_ATTEMPTS = 4
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
+logger = logging.getLogger(__name__)
 
 # New: award type names mapped to USAspending's codes
 AWARD_TYPE_CODES = {
@@ -47,11 +52,29 @@ def build_request_body(state: str, fiscal_year: int, award_type: str, agency: st
 
 
 def fetch_page(client: httpx.Client, body: dict, page: int) -> dict:
-    """Request one page of award results."""
+    """Request one page of award results, retrying temporary failures."""
     request_body = {**body, "page": page, "limit": PAGE_SIZE}
-    response = client.post(API_URL, json=request_body)
-    response.raise_for_status()
-    return response.json()
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            response = client.post(API_URL, json=request_body)
+        except httpx.TransportError as error:
+            reason = type(error).__name__
+        else:
+            if response.status_code not in RETRYABLE_STATUS_CODES:
+                response.raise_for_status()
+                return response.json()
+            reason = f"HTTP {response.status_code}"
+
+        if attempt == MAX_ATTEMPTS:
+            raise RuntimeError(f"Page {page} failed after {MAX_ATTEMPTS} attempts ({reason})")
+
+        wait_seconds = 2**attempt
+        logger.warning(
+            "Page %s attempt %s failed (%s), retrying in %ss",
+            page, attempt, reason, wait_seconds,
+        )
+        time.sleep(wait_seconds)
 
 
 def fetch_all(client: httpx.Client, body: dict) -> list[dict]:
@@ -62,7 +85,7 @@ def fetch_all(client: httpx.Client, body: dict) -> list[dict]:
     while page <= MAX_PAGES:
         data = fetch_page(client, body, page)
         records.extend(data["results"])
-        print(f"Page {page}: {len(data['results'])} records")
+        logger.info("Page %s: %s records", page, len(data["results"]))
 
         if not data["page_metadata"]["hasNext"]:
             break
@@ -71,7 +94,7 @@ def fetch_all(client: httpx.Client, body: dict) -> list[dict]:
         time.sleep(PAUSE_SECONDS)
 
     if page > MAX_PAGES:
-        print(f"Warning: stopped at {MAX_PAGES} pages, more data may exist")
+        logger.warning("Stopped at %s pages, more data may exist", MAX_PAGES)
 
     return records
 
@@ -110,8 +133,9 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     args = parse_args()
     state = args.state.upper()
     body = build_request_body(state, args.fiscal_year, args.award_type, args.agency)
@@ -125,9 +149,9 @@ def main() -> None:
     with httpx.Client(timeout=60) as client:
         records = fetch_all(client, body)
 
-    print(f"Total records: {len(records)}")
+    logger.info("Total records: %s", len(records))
     path = save_records(records, OUTPUT_DIR, metadata)
-    print(f"Saved to {path}")
+    logger.info("Saved to %s", path)
 
 
 if __name__ == "__main__":
