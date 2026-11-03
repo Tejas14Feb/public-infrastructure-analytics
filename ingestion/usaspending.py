@@ -12,7 +12,7 @@ import httpx
 API_URL = "https://api.usaspending.gov/api/v2/search/spending_by_award/"
 OUTPUT_DIR = Path(__file__).parent.parent / "data" / "raw" / "usaspending"
 PAGE_SIZE = 100
-MAX_PAGES = 50
+MAX_PAGES = 200
 PAUSE_SECONDS = 0.5
 MAX_ATTEMPTS = 4
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
@@ -94,7 +94,10 @@ def fetch_all(client: httpx.Client, body: dict) -> list[dict]:
         time.sleep(PAUSE_SECONDS)
 
     if page > MAX_PAGES:
-        logger.warning("Stopped at %s pages, more data may exist", MAX_PAGES)
+        raise RuntimeError(
+            f"Reached the {MAX_PAGES}-page limit before the last page. "
+            "Refusing to save incomplete data."
+        )
 
     return records
 
