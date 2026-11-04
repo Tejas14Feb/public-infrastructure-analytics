@@ -1,0 +1,23 @@
+name: public_infrastructure_analytics
+version: "1.0.0"
+
+# Which connection profile to use (defined outside the repo, in ~/.dbt/profiles.yml)
+profile: public_infrastructure_analytics
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+
+# Folders dbt generates, which `dbt clean` deletes
+clean-targets: ["target", "dbt_packages"]
+
+# Default materializations for each layer
+models:
+  public_infrastructure_analytics:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
