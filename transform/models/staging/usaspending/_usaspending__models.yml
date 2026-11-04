@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: stg_usaspending__awards
+    description: >
+      One row per award, per state and fiscal year it was reported for.
+      Extracted from raw JSON, cast to proper types, and deduplicated
+      to the latest fetch.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - award_key
+              - state_code
+              - fiscal_year
+    columns:
+      - name: award_key
+        description: Unique USAspending identifier for the award (generated_internal_id).
+        data_tests:
+          - not_null
+      - name: state_code
+        description: Two-letter code of the state where the work is performed.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["SD", "IA", "NE", "MN", "IL"]
+      - name: fiscal_year
+        description: Federal fiscal year (October through September) the award was reported for.
+        data_tests:
+          - not_null
+      - name: award_type
+        description: contracts or grants.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["contracts", "grants"]
+      - name: award_amount
+        description: Total award amount in US dollars.
+        data_tests:
+          - not_null
