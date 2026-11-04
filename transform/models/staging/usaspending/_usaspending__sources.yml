@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: usaspending
+    description: Raw USAspending award search results, loaded by the ingestion pipeline.
+    database: raw
+    schema: usaspending
+    tables:
+      - name: awards
+        description: One row per award per fetch, stored as raw JSON in the record column.
+        config:
+          loaded_at_field: loaded_at
