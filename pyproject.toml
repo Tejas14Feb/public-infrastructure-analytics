@@ -3,9 +3,11 @@ name = "public-infrastructure-analytics"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "dbt-core>=1.12.6",
+    "dbt-snowflake>=1.12.4",
     "httpx>=0.28.1",
     "python-dotenv>=1.2.4",
-    "snowflake-connector-python>=5.1.0",
+    "snowflake-connector-python>=4.2,<5",
 ]
 
 [dependency-groups]
