@@ -28,5 +28,6 @@ def test_transaction_requests_use_transaction_fields_and_sort():
     body = build_request_body("SD", 2025, "grants", "Department of Transportation", level="transactions")
 
     assert "Transaction Amount" in body["fields"]
+    assert "Awarding Sub Agency" in body["fields"]
     assert "Action Date" in body["fields"]
     assert body["sort"] == "Transaction Amount"
