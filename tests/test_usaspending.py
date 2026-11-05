@@ -21,3 +21,12 @@ def test_award_types_map_to_usaspending_codes():
 
     assert contracts["filters"]["award_type_codes"] == ["A", "B", "C", "D"]
     assert grants["filters"]["award_type_codes"] == ["02", "03", "04", "05"]
+
+
+
+def test_transaction_requests_use_transaction_fields_and_sort():
+    body = build_request_body("SD", 2025, "grants", "Department of Transportation", level="transactions")
+
+    assert "Transaction Amount" in body["fields"]
+    assert "Action Date" in body["fields"]
+    assert body["sort"] == "Transaction Amount"
