@@ -14,7 +14,7 @@ RAW_ROOT = Path(__file__).parent.parent / "data" / "raw" / "usaspending"
 PAGE_SIZE = 100
 MAX_PAGES = 200
 PAUSE_SECONDS = 0.5
-MAX_ATTEMPTS = 4
+MAX_ATTEMPTS = 5
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 AWARD_TYPE_CODES = {
@@ -22,7 +22,7 @@ AWARD_TYPE_CODES = {
     "grants": ["02", "03", "04", "05"],
 }
 
-# New: everything that differs between the two levels lives here
+# Everything that differs between the two levels lives here
 LEVELS = {
     "awards": {
         "search_url": f"{API_BASE}/spending_by_award/",
@@ -34,8 +34,9 @@ LEVELS = {
         "search_url": f"{API_BASE}/spending_by_transaction/",
         "count_url": f"{API_BASE}/spending_by_transaction_count/",
         "fields": [
-            "Award ID", "Mod", "Recipient Name", "Action Date",
-            "Transaction Amount", "Awarding Agency", "Award Type",
+            "Award ID", "Mod", "Recipient Name", "Recipient UEI", "Action Date",
+            "Transaction Amount", "Awarding Agency", "Awarding Sub Agency",
+            "Award Type", "Assistance Listing",
         ],
         "sort": "Transaction Amount",
     },
@@ -49,7 +50,6 @@ def fiscal_year_dates(fiscal_year: int) -> tuple[str, str]:
     return f"{fiscal_year - 1}-10-01", f"{fiscal_year}-09-30"
 
 
-# New: filters are shared by the search and count endpoints
 def build_filters(state: str, fiscal_year: int, award_type: str, agency: str) -> dict:
     """Build the search filters for one state, fiscal year, and award type."""
     start_date, end_date = fiscal_year_dates(fiscal_year)
@@ -61,7 +61,6 @@ def build_filters(state: str, fiscal_year: int, award_type: str, agency: str) ->
     }
 
 
-# Changed: picks fields and sort from the level's configuration
 def build_request_body(
     state: str, fiscal_year: int, award_type: str, agency: str, level: str = "awards"
 ) -> dict:
@@ -75,14 +74,11 @@ def build_request_body(
     }
 
 
-# Changed: takes the endpoint URL as an argument
-def fetch_page(client: httpx.Client, url: str, body: dict, page: int) -> dict:
-    """Request one page of results, retrying temporary failures."""
-    request_body = {**body, "page": page, "limit": PAGE_SIZE}
-
+def post_with_retries(client: httpx.Client, url: str, payload: dict) -> dict:
+    """POST a request, retrying timeouts, dropped connections, and 429/5xx responses."""
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            response = client.post(url, json=request_body)
+            response = client.post(url, json=payload)
         except httpx.TransportError as error:
             reason = type(error).__name__
         else:
@@ -92,17 +88,20 @@ def fetch_page(client: httpx.Client, url: str, body: dict, page: int) -> dict:
             reason = f"HTTP {response.status_code}"
 
         if attempt == MAX_ATTEMPTS:
-            raise RuntimeError(f"Page {page} failed after {MAX_ATTEMPTS} attempts ({reason})")
+            raise RuntimeError(f"Request to {url} failed after {MAX_ATTEMPTS} attempts ({reason})")
 
         wait_seconds = 2**attempt
         logger.warning(
-            "Page %s attempt %s failed (%s), retrying in %ss",
-            page, attempt, reason, wait_seconds,
+            "Attempt %s failed (%s), retrying in %ss", attempt, reason, wait_seconds,
         )
         time.sleep(wait_seconds)
 
 
-# Changed: takes the endpoint URL as an argument
+def fetch_page(client: httpx.Client, url: str, body: dict, page: int) -> dict:
+    """Request one page of results."""
+    return post_with_retries(client, url, {**body, "page": page, "limit": PAGE_SIZE})
+
+
 def fetch_all(client: httpx.Client, url: str, body: dict) -> list[dict]:
     """Fetch every page of results and return all records."""
     records: list[dict] = []
@@ -128,15 +127,11 @@ def fetch_all(client: httpx.Client, url: str, body: dict) -> list[dict]:
     return records
 
 
-# New: ask the API how many records should exist
 def get_expected_count(client: httpx.Client, url: str, filters: dict, award_type: str) -> int:
     """Return how many records the API says match, for reconciliation."""
-    response = client.post(url, json={"filters": filters})
-    response.raise_for_status()
-    return response.json()["results"][award_type]
+    return post_with_retries(client, url, {"filters": filters})["results"][award_type]
 
 
-# Changed: the filename starts with the level
 def save_records(records: list[dict], output_dir: Path, level: str, metadata: dict) -> Path:
     """Save records as JSON Lines, tagging each record with how it was fetched."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -157,7 +152,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Fetch USAspending awards or transactions and save them as raw JSON Lines."
     )
-    # New: choose awards or transactions
     parser.add_argument(
         "--level", default="awards", choices=sorted(LEVELS),
         help="awards or transactions (default: awards)",
@@ -195,7 +189,7 @@ def main() -> None:
         logger.info("Expected %s %s", expected, args.level)
         records = fetch_all(client, config["search_url"], body)
 
-    # New: reconciliation, the fetched count must match the API's count
+    # Reconciliation: the fetched count must match the API's count
     if len(records) != expected:
         raise RuntimeError(
             f"Reconciliation failed: expected {expected} {args.level}, fetched {len(records)}. "
