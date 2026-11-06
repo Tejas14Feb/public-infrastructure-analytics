@@ -29,11 +29,16 @@ def setup_statements(stage: str, table: str) -> list[str]:
 
 
 def copy_statement(stage: str, table: str) -> str:
-    """Return the COPY INTO statement that loads staged files into the table."""
+    """Return the COPY INTO statement that loads staged files into the table.
+
+    purge = true deletes each file from the stage after it loads, so old files
+    can't be reloaded if the table's load history is ever reset.
+    """
     return f"""
     copy into {table} (record, source_file)
     from (select $1, metadata$filename from @{stage})
     on_error = 'abort_statement'
+    purge = true
     """
 
 
