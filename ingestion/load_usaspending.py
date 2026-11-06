@@ -46,7 +46,9 @@ def parse_args() -> argparse.Namespace:
     """Read which level to load from the command line."""
     parser = argparse.ArgumentParser(description="Load raw USAspending files into Snowflake.")
     parser.add_argument(
-        "--level", default="awards", choices=sorted(LEVELS),
+        "--level",
+        default="awards",
+        choices=sorted(LEVELS),
         help="awards or transactions (default: awards)",
     )
     return parser.parse_args()

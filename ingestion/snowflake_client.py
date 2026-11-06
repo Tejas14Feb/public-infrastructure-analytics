@@ -29,10 +29,14 @@ def get_connection() -> snowflake.connector.SnowflakeConnection:
 def main() -> None:
     """Check the connection by asking Snowflake who we are."""
     with get_connection() as connection:
-        row = connection.cursor().execute(
-            "select current_user(), current_role(), current_warehouse(), "
-            "current_database(), current_schema()"
-        ).fetchone()
+        row = (
+            connection.cursor()
+            .execute(
+                "select current_user(), current_role(), current_warehouse(), "
+                "current_database(), current_schema()"
+            )
+            .fetchone()
+        )
 
     print(row)
 
