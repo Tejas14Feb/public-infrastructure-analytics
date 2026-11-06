@@ -27,11 +27,8 @@ LEVELS = {
     "awards": {
         "search_url": f"{API_BASE}/spending_by_award/",
         "count_url": f"{API_BASE}/spending_by_award_count/",
-        "fields": [
-            "Award ID", "Mod", "Recipient Name", "Recipient UEI", "Action Date",
-            "Transaction Amount", "Awarding Agency", "Awarding Sub Agency",
-            "Award Type", "Assistance Listing",
-        ],        "sort": "Award Amount",
+        "fields": ["Award ID", "Recipient Name", "Award Amount", "Awarding Agency", "Start Date"],
+        "sort": "Award Amount",
     },
     "transactions": {
         "search_url": f"{API_BASE}/spending_by_transaction/",
