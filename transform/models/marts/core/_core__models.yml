@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: dim_dates
+    description: One row per calendar day from FY2019 through FY2027, with fiscal attributes.
+    columns:
+      - name: date_day
+        data_tests:
+          - unique
+          - not_null
+      - name: fiscal_quarter
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+
+  - name: dim_geography
+    description: One row per state in scope.
+    columns:
+      - name: state_code
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_agencies
+    description: One row per DOT sub-agency, with its sector.
+    columns:
+      - name: awarding_sub_agency
+        data_tests:
+          - unique
+          - not_null
+      - name: sector
+        data_tests:
+          - not_null
+
+  - name: dim_programs
+    description: One row per assistance listing, plus a NONE member for contracts.
+    columns:
+      - name: assistance_listing_number
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_recipients
+    description: One row per recipient UEI, plus an UNKNOWN member.
+    columns:
+      - name: recipient_uei
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_awards
+    description: >
+      One row per award, from the award search plus inferred members that
+      appear only in transactions (is_in_award_search = false).
+    columns:
+      - name: award_key
+        data_tests:
+          - unique
+          - not_null
