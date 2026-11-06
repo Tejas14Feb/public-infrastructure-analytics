@@ -34,9 +34,16 @@ LEVELS = {
         "search_url": f"{API_BASE}/spending_by_transaction/",
         "count_url": f"{API_BASE}/spending_by_transaction_count/",
         "fields": [
-            "Award ID", "Mod", "Recipient Name", "Recipient UEI", "Action Date",
-            "Transaction Amount", "Awarding Agency", "Awarding Sub Agency",
-            "Award Type", "Assistance Listing",
+            "Award ID",
+            "Mod",
+            "Recipient Name",
+            "Recipient UEI",
+            "Action Date",
+            "Transaction Amount",
+            "Awarding Agency",
+            "Awarding Sub Agency",
+            "Award Type",
+            "Assistance Listing",
         ],
         "sort": "Transaction Amount",
     },
@@ -92,7 +99,10 @@ def post_with_retries(client: httpx.Client, url: str, payload: dict) -> dict:
 
         wait_seconds = 2**attempt
         logger.warning(
-            "Attempt %s failed (%s), retrying in %ss", attempt, reason, wait_seconds,
+            "Attempt %s failed (%s), retrying in %ss",
+            attempt,
+            reason,
+            wait_seconds,
         )
         time.sleep(wait_seconds)
 
@@ -153,17 +163,22 @@ def parse_args() -> argparse.Namespace:
         description="Fetch USAspending awards or transactions and save them as raw JSON Lines."
     )
     parser.add_argument(
-        "--level", default="awards", choices=sorted(LEVELS),
+        "--level",
+        default="awards",
+        choices=sorted(LEVELS),
         help="awards or transactions (default: awards)",
     )
     parser.add_argument("--state", required=True, help="Two-letter state code, e.g. SD")
     parser.add_argument("--fiscal-year", type=int, required=True, help="e.g. 2025")
     parser.add_argument(
-        "--award-type", required=True, choices=sorted(AWARD_TYPE_CODES),
+        "--award-type",
+        required=True,
+        choices=sorted(AWARD_TYPE_CODES),
         help="contracts or grants",
     )
     parser.add_argument(
-        "--agency", default="Department of Transportation",
+        "--agency",
+        default="Department of Transportation",
         help="Awarding agency name (default: Department of Transportation)",
     )
     return parser.parse_args()
