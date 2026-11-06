@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: int_usaspending__awards_latest
+    description: One row per award, using its most recent fiscal year and fetch.
+    columns:
+      - name: award_key
+        description: USAspending award identifier (generated_internal_id).
+        data_tests:
+          - unique
+          - not_null
+
+  - name: int_usaspending__programs_latest
+    description: One row per assistance listing number, with its most recent title.
+    columns:
+      - name: assistance_listing_number
+        description: Assistance listing (CFDA) number.
+        data_tests:
+          - unique
+          - not_null
+      - name: assistance_listing_title
+        description: Most recent title for the program.
+        data_tests:
+          - not_null
