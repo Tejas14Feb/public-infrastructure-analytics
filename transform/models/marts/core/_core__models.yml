@@ -12,7 +12,7 @@ models:
         data_tests:
           - accepted_values:
               arguments:
-                values: [1, 2, 3, 4]
+                values: [ 1, 2, 3, 4 ]
                 quote: false
 
   - name: dim_geography
@@ -58,4 +58,59 @@ models:
       - name: award_key
         data_tests:
           - unique
+          - not_null
+
+
+
+  - name: fct_transactions
+    description: >
+      One row per transaction. Amounts are net obligations and can be negative.
+      Every foreign key joins to a dimension, using unknown and inferred members.
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('stg_usaspending__transactions')
+    columns:
+      - name: transaction_key
+        data_tests:
+          - unique
+          - not_null
+      - name: award_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_awards')
+                field: award_key
+      - name: recipient_uei
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_recipients')
+                field: recipient_uei
+      - name: awarding_sub_agency
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_agencies')
+                field: awarding_sub_agency
+      - name: assistance_listing_number
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_programs')
+                field: assistance_listing_number
+      - name: state_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: state_code
+      - name: action_date
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_dates')
+                field: date_day
+      - name: transaction_amount
+        data_tests:
           - not_null
