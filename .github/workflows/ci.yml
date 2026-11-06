@@ -4,6 +4,12 @@ on:
   pull_request:
     branches: [main]
 
+# A newer run on the same pull request cancels the older one,
+# so two runs never build into the same CI schema at once
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   python:
     name: Python checks
@@ -29,3 +35,41 @@ jobs:
 
       - name: Run tests
         run: uv run pytest
+
+  dbt:
+    name: dbt build
+    runs-on: ubuntu-latest
+    needs: python
+
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      DBT_SNOWFLAKE_PRIVATE_KEY: ${{ secrets.DBT_SNOWFLAKE_PRIVATE_KEY }}
+      DBT_SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.DBT_SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+      DBT_CI_SCHEMA: CI_PR_${{ github.event.pull_request.number }}
+      DBT_PROFILES_DIR: ${{ github.workspace }}/transform/ci
+
+    defaults:
+      run:
+        working-directory: transform
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Install dbt packages
+        run: uv run dbt deps
+
+      - name: Build and test the dbt project
+        run: uv run dbt build --target ci
+
+      - name: Drop the CI schema
+        if: always()
+        run: uv run dbt run-operation drop_ci_schema --target ci
