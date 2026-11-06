@@ -1,0 +1,31 @@
+version: 2
+
+seeds:
+  - name: agency_sectors
+    description: Maps each DOT awarding sub-agency to an infrastructure sector.
+    columns:
+      - name: awarding_sub_agency
+        description: Sub-agency name, exactly as it appears in USAspending.
+        data_tests:
+          - unique
+          - not_null
+      - name: sector
+        description: Infrastructure sector used for reporting.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Highways & Bridges", "Public Transit", "Aviation", "Rail", "Maritime & Ports", "Safety & Other"]
+
+  - name: states
+    description: State codes and names for the five states in scope.
+    columns:
+      - name: state_code
+        description: Two-letter state code.
+        data_tests:
+          - unique
+          - not_null
+      - name: state_name
+        description: Full state name.
+        data_tests:
+          - not_null
