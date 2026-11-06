@@ -39,3 +39,52 @@ models:
         description: Total award amount in US dollars.
         data_tests:
           - not_null
+
+  - name: stg_usaspending__transactions
+    description: >
+      One row per transaction, from the latest snapshot of each state, fiscal year,
+      and award type. Amounts are net obligations and can be negative (de-obligations).
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              action_date between date_from_parts(fiscal_year - 1, 10, 1)
+              and date_from_parts(fiscal_year, 9, 30)
+    columns:
+      - name: transaction_key
+        description: Surrogate key from award, mod, action date, amount, and occurrence number.
+        data_tests:
+          - unique
+          - not_null
+      - name: award_key
+        description: USAspending award identifier (generated_internal_id).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_usaspending__awards')
+                field: award_key
+              config:
+                severity: error
+                warn_if: ">0"
+                error_if: ">500"
+      - name: action_date
+        description: Date of the transaction.
+        data_tests:
+          - not_null
+      - name: transaction_amount
+        description: Net obligation in US dollars. Negative values are de-obligations.
+        data_tests:
+          - not_null
+      - name: state_code
+        description: Two-letter code of the state where the work is performed.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["SD", "IA", "NE", "MN", "IL"]
+      - name: award_type
+        description: contracts or grants.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["contracts", "grants"]
