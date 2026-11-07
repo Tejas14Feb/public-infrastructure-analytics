@@ -236,3 +236,6 @@ transform/logs/
 
 # Local data files
 data/
+
+# Airflow local runtime (config, SQLite DB, logs)
+orchestration/airflow_home/
