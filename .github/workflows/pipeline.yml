@@ -1,0 +1,71 @@
+name: Daily pipeline
+
+on:
+  schedule:
+    - cron: "17 11 * * *"  # 11:17 UTC = 5:17 AM Central (CST)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Own group; deploy.yml keeps deploy-prod, so prod builds still never overlap
+concurrency:
+  group: daily-pipeline
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    name: Ingest USAspending
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Replaces the local .env file, which is gitignored and not on the runner
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: LOADER_SVC
+      SNOWFLAKE_ROLE: LOADER
+      SNOWFLAKE_WAREHOUSE: ANALYTICS_WH
+      SNOWFLAKE_DATABASE: RAW
+      SNOWFLAKE_SCHEMA: USASPENDING
+      SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.LOADER_SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Write loader key to a temp file
+        env:
+          LOADER_KEY: ${{ secrets.LOADER_SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          key_path="$RUNNER_TEMP/loader_svc_key.p8"
+          printf '%s\n' "$LOADER_KEY" > "$key_path"
+          chmod 600 "$key_path"
+          echo "SNOWFLAKE_PRIVATE_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Fetch current fiscal year from USAspending
+        run: |
+          fiscal_year=$(date -u -d "+3 months" +%Y)
+          echo "Fetching FY$fiscal_year"
+          for level in awards transactions; do
+            for state in SD IA NE MN IL; do
+              for award_type in contracts grants; do
+                uv run python ingestion/usaspending.py --level "$level" --state "$state" \
+                  --fiscal-year "$fiscal_year" --award-type "$award_type"
+              done
+            done
+          done
+
+      - name: Load into Snowflake
+        run: |
+          uv run python ingestion/load_usaspending.py --level awards
+          uv run python ingestion/load_usaspending.py --level transactions
+
+  transform:
+    name: dbt build (prod)
+    needs: ingest
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
