@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: mart_spending_by_state_sector
+    description: Net obligations by fiscal year, state, and sector, split into grants and contracts. Answers business question 1.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - fiscal_year
+              - state_code
+              - sector
+
+  - name: mart_spending_trends
+    description: >
+      Net obligations by sector and fiscal year, with year-over-year change, a
+      Before/After label for the 2021 infrastructure bill, and a partial-year flag.
+      Answers business question 2.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - fiscal_year
+              - sector
+    columns:
+      - name: bill_period
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Before", "After"]
+
+  - name: mart_top_contract_recipients
+    description: >
+      Contract net obligations by recipient, state, and fiscal year, with market
+      share and rank within each state and year. Answers business question 3.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - fiscal_year
+              - state_code
+              - recipient_uei
