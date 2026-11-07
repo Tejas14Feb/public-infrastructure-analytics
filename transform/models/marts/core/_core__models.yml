@@ -5,10 +5,20 @@ models:
     description: One row per calendar day from FY2019 through FY2027, with fiscal attributes.
     columns:
       - name: date_day
+        description: Calendar date; one row per day.
         data_tests:
           - unique
           - not_null
+      - name: calendar_year
+        description: Calendar year of the date.
+      - name: calendar_month
+        description: Calendar month number (1 to 12).
+      - name: month_name
+        description: Full month name, e.g. January.
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
       - name: fiscal_quarter
+        description: Federal fiscal quarter, 1 to 4 (quarter 1 is October to December).
         data_tests:
           - accepted_values:
               arguments:
@@ -19,36 +29,49 @@ models:
     description: One row per state in scope.
     columns:
       - name: state_code
+        description: '{{ doc("state_code") }}'
         data_tests:
           - unique
           - not_null
+      - name: state_name
+        description: '{{ doc("state_name") }}'
 
   - name: dim_agencies
     description: One row per DOT sub-agency, with its sector.
     columns:
       - name: awarding_sub_agency
+        description: '{{ doc("awarding_sub_agency") }}'
         data_tests:
           - unique
           - not_null
       - name: sector
+        description: '{{ doc("sector") }}'
         data_tests:
           - not_null
+      - name: awarding_agency
+        description: '{{ doc("awarding_agency") }}'
 
   - name: dim_programs
     description: One row per assistance listing, plus a NONE member for contracts.
     columns:
       - name: assistance_listing_number
+        description: '{{ doc("assistance_listing_number") }}'
         data_tests:
           - unique
           - not_null
+      - name: assistance_listing_title
+        description: '{{ doc("assistance_listing_title") }}'
 
   - name: dim_recipients
     description: One row per recipient UEI, plus an UNKNOWN member.
     columns:
       - name: recipient_uei
+        description: '{{ doc("recipient_uei") }}'
         data_tests:
           - unique
           - not_null
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
 
   - name: dim_awards
     description: >
@@ -56,11 +79,28 @@ models:
       appear only in transactions (is_in_award_search = false).
     columns:
       - name: award_key
+        description: '{{ doc("award_key") }}'
         data_tests:
           - unique
           - not_null
-
-
+      - name: award_id
+        description: '{{ doc("award_id") }}'
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
+      - name: awarding_agency
+        description: '{{ doc("awarding_agency") }}'
+      - name: award_type
+        description: '{{ doc("award_type") }}'
+      - name: award_amount
+        description: '{{ doc("award_amount") }}'
+      - name: start_date
+        description: '{{ doc("start_date") }}'
+      - name: latest_state_code
+        description: '{{ doc("latest_state_code") }}'
+      - name: latest_reported_fiscal_year
+        description: '{{ doc("latest_reported_fiscal_year") }}'
+      - name: is_in_award_search
+        description: True if the award came from the award search; false for inferred awards that appear only in transactions.
 
   - name: fct_transactions
     description: >
@@ -72,45 +112,61 @@ models:
             compare_model: ref('stg_usaspending__transactions')
     columns:
       - name: transaction_key
+        description: '{{ doc("transaction_key") }}'
         data_tests:
           - unique
           - not_null
       - name: award_key
+        description: '{{ doc("award_key") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_awards')
                 field: award_key
       - name: recipient_uei
+        description: '{{ doc("recipient_uei") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_recipients')
                 field: recipient_uei
       - name: awarding_sub_agency
+        description: '{{ doc("awarding_sub_agency") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_agencies')
                 field: awarding_sub_agency
       - name: assistance_listing_number
+        description: '{{ doc("assistance_listing_number") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_programs')
                 field: assistance_listing_number
       - name: state_code
+        description: '{{ doc("state_code") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_geography')
                 field: state_code
       - name: action_date
+        description: '{{ doc("action_date") }}'
         data_tests:
           - relationships:
               arguments:
                 to: ref('dim_dates')
                 field: date_day
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
+      - name: award_type
+        description: '{{ doc("award_type") }}'
+      - name: modification_number
+        description: '{{ doc("modification_number") }}'
+      - name: is_original_action
+        description: True if this transaction is the award's original action rather than a modification.
       - name: transaction_amount
+        description: '{{ doc("transaction_amount") }}'
         data_tests:
           - not_null

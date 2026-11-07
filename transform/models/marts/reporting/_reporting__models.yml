@@ -10,6 +10,23 @@ models:
               - fiscal_year
               - state_code
               - sector
+    columns:
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
+      - name: state_code
+        description: '{{ doc("state_code") }}'
+      - name: state_name
+        description: '{{ doc("state_name") }}'
+      - name: sector
+        description: '{{ doc("sector") }}'
+      - name: transactions
+        description: '{{ doc("transactions") }}'
+      - name: net_obligations
+        description: '{{ doc("net_obligations") }}'
+      - name: grant_obligations
+        description: Net obligations from grants only, in USD.
+      - name: contract_obligations
+        description: Net obligations from contracts only, in USD.
 
   - name: mart_spending_trends
     description: >
@@ -23,11 +40,24 @@ models:
               - fiscal_year
               - sector
     columns:
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
+      - name: sector
+        description: '{{ doc("sector") }}'
+      - name: net_obligations
+        description: '{{ doc("net_obligations") }}'
       - name: bill_period
+        description: Before or After the 2021 infrastructure bill (Infrastructure Investment and Jobs Act), based on fiscal year.
         data_tests:
           - accepted_values:
               arguments:
                 values: ["Before", "After"]
+      - name: prior_year_obligations
+        description: Net obligations for the same sector in the previous fiscal year, in USD.
+      - name: pct_change_from_prior_year
+        description: Percent change in net obligations versus the prior fiscal year. Null when there is no prior year.
+      - name: is_partial_year
+        description: True for the current fiscal year, which is still in progress, so its totals are incomplete.
 
   - name: mart_top_contract_recipients
     description: >
@@ -40,3 +70,22 @@ models:
               - fiscal_year
               - state_code
               - recipient_uei
+    columns:
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
+      - name: state_code
+        description: '{{ doc("state_code") }}'
+      - name: recipient_uei
+        description: '{{ doc("recipient_uei") }}'
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
+      - name: transactions
+        description: '{{ doc("transactions") }}'
+      - name: awards
+        description: Number of distinct awards behind the recipient's transactions.
+      - name: net_obligations
+        description: '{{ doc("net_obligations") }}'
+      - name: market_share_pct
+        description: Recipient's share of all contract net obligations in the state and fiscal year, as a percentage.
+      - name: rank_in_state_year
+        description: Rank by net obligations within the state and fiscal year (1 is the largest).

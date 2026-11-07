@@ -1,13 +1,13 @@
 {% docs award_key %}
-Surrogate key for an award, built in staging. Joins `fct_transactions` to `dim_awards`.
+Unique USAspending identifier for the award (`generated_internal_id`). Joins `fct_transactions` to `dim_awards`.
 {% enddocs %}
 
 {% docs award_id %}
-Award identifier as reported by USAspending (PIID for contracts, FAIN for grants).
+Award ID shown on USAspending (PIID for contracts, FAIN for grants).
 {% enddocs %}
 
 {% docs transaction_key %}
-Surrogate key for a single transaction (one obligation, modification, or de-obligation).
+Surrogate key built from award, modification number, action date, amount, and occurrence number. One row per transaction.
 {% enddocs %}
 
 {% docs recipient_uei %}

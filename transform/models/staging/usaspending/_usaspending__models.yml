@@ -15,30 +15,44 @@ models:
               - fiscal_year
     columns:
       - name: award_key
-        description: Unique USAspending identifier for the award (generated_internal_id).
+        description: '{{ doc("award_key") }}'
         data_tests:
           - not_null
+      - name: award_id
+        description: '{{ doc("award_id") }}'
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
+      - name: awarding_agency
+        description: '{{ doc("awarding_agency") }}'
+      - name: award_amount
+        description: '{{ doc("award_amount") }}'
+        data_tests:
+          - not_null
+      - name: start_date
+        description: '{{ doc("start_date") }}'
       - name: state_code
-        description: Two-letter code of the state where the work is performed.
+        description: '{{ doc("state_code") }}'
         data_tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ["SD", "IA", "NE", "MN", "IL"]
       - name: fiscal_year
-        description: Federal fiscal year (October through September) the award was reported for.
+        description: '{{ doc("fiscal_year") }}'
         data_tests:
           - not_null
       - name: award_type
-        description: contracts or grants.
+        description: '{{ doc("award_type") }}'
         data_tests:
           - accepted_values:
               arguments:
                 values: ["contracts", "grants"]
-      - name: award_amount
-        description: Total award amount in US dollars.
-        data_tests:
-          - not_null
+      - name: extracted_at
+        description: '{{ doc("extracted_at") }}'
+      - name: source_file
+        description: '{{ doc("source_file") }}'
+      - name: loaded_at
+        description: '{{ doc("loaded_at") }}'
 
   - name: stg_usaspending__transactions
     description: >
@@ -52,12 +66,12 @@ models:
               and date_from_parts(fiscal_year, 9, 30)
     columns:
       - name: transaction_key
-        description: Surrogate key from award, mod, action date, amount, and occurrence number.
+        description: '{{ doc("transaction_key") }}'
         data_tests:
           - unique
           - not_null
       - name: award_key
-        description: USAspending award identifier (generated_internal_id).
+        description: '{{ doc("award_key") }}'
         data_tests:
           - not_null
           - relationships:
@@ -68,23 +82,51 @@ models:
                 severity: error
                 warn_if: ">0"
                 error_if: ">500"
+      - name: award_id
+        description: '{{ doc("award_id") }}'
+      - name: modification_number
+        description: '{{ doc("modification_number") }}'
       - name: action_date
-        description: Date of the transaction.
+        description: '{{ doc("action_date") }}'
         data_tests:
           - not_null
       - name: transaction_amount
-        description: Net obligation in US dollars. Negative values are de-obligations.
+        description: '{{ doc("transaction_amount") }}'
         data_tests:
           - not_null
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
+      - name: recipient_uei
+        description: '{{ doc("recipient_uei") }}'
+      - name: awarding_agency
+        description: '{{ doc("awarding_agency") }}'
+      - name: awarding_sub_agency
+        description: '{{ doc("awarding_sub_agency") }}'
+      - name: award_type_description
+        description: Award type as worded by USAspending, e.g. Definitive Contract or Project Grant.
+      - name: assistance_listing_number
+        description: '{{ doc("assistance_listing_number") }}'
+      - name: assistance_listing_title
+        description: '{{ doc("assistance_listing_title") }}'
       - name: state_code
-        description: Two-letter code of the state where the work is performed.
+        description: '{{ doc("state_code") }}'
         data_tests:
           - accepted_values:
               arguments:
                 values: ["SD", "IA", "NE", "MN", "IL"]
+      - name: fiscal_year
+        description: '{{ doc("fiscal_year") }}'
       - name: award_type
-        description: contracts or grants.
+        description: '{{ doc("award_type") }}'
         data_tests:
           - accepted_values:
               arguments:
                 values: ["contracts", "grants"]
+      - name: extracted_at
+        description: '{{ doc("extracted_at") }}'
+      - name: source_file
+        description: '{{ doc("source_file") }}'
+      - name: loaded_at
+        description: '{{ doc("loaded_at") }}'
+      - name: occurrence_number
+        description: Position of this row among otherwise identical transactions in a snapshot; part of transaction_key.

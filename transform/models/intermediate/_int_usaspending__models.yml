@@ -5,20 +5,36 @@ models:
     description: One row per award, using its most recent fiscal year and fetch.
     columns:
       - name: award_key
-        description: USAspending award identifier (generated_internal_id).
+        description: '{{ doc("award_key") }}'
         data_tests:
           - unique
           - not_null
+      - name: award_id
+        description: '{{ doc("award_id") }}'
+      - name: recipient_name
+        description: '{{ doc("recipient_name") }}'
+      - name: awarding_agency
+        description: '{{ doc("awarding_agency") }}'
+      - name: award_type
+        description: '{{ doc("award_type") }}'
+      - name: award_amount
+        description: '{{ doc("award_amount") }}'
+      - name: start_date
+        description: '{{ doc("start_date") }}'
+      - name: latest_state_code
+        description: '{{ doc("latest_state_code") }}'
+      - name: latest_reported_fiscal_year
+        description: '{{ doc("latest_reported_fiscal_year") }}'
 
   - name: int_usaspending__programs_latest
     description: One row per assistance listing number, with its most recent title.
     columns:
       - name: assistance_listing_number
-        description: Assistance listing (CFDA) number.
+        description: '{{ doc("assistance_listing_number") }}'
         data_tests:
           - unique
           - not_null
       - name: assistance_listing_title
-        description: Most recent title for the program.
+        description: '{{ doc("assistance_listing_title") }}'
         data_tests:
           - not_null
