@@ -32,16 +32,16 @@ jobs:
         run: uv sync --locked
 
       - name: Install dbt packages
+        working-directory: transform
         run: uv run dbt deps
 
       - name: Generate docs
+        working-directory: transform
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           DBT_SNOWFLAKE_PRIVATE_KEY: ${{ secrets.DBT_SNOWFLAKE_PRIVATE_KEY }}
           DBT_SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.DBT_SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}
-        run: |
-          cd transform
-          uv run dbt docs generate --target prod --profiles-dir ci
+        run: uv run dbt docs generate --target prod --profiles-dir ci
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
