@@ -3,6 +3,7 @@
 [![Daily pipeline](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/pipeline.yml/badge.svg)](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/pipeline.yml)
 [![Deploy](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/deploy.yml/badge.svg)](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/deploy.yml)
 [![CI](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Tejas14Feb/public-infrastructure-analytics/actions/workflows/ci.yml)
+[![dbt docs](https://img.shields.io/badge/dbt-docs-blue)](https://tejas14feb.github.io/public-infrastructure-analytics/)
 
 An end-to-end analytics engineering project on federal Department of Transportation spending in five Midwest states (SD, IA, NE, MN, IL), FY2019 to present. Data comes from the USAspending API, lands in Snowflake, is modeled with dbt into a tested star schema, and refreshes daily on a schedule.
 
@@ -84,4 +85,4 @@ tests/            pytest unit tests
 - [x] CI/CD with required checks and production auto-deploy
 - [x] Daily scheduled pipeline and local Airflow orchestration
 - [ ] Tableau Public dashboard
-- [ ] Published dbt docs site
+- [x] Published dbt docs site
