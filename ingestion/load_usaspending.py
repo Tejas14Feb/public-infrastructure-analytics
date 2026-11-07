@@ -80,6 +80,13 @@ def main() -> None:
         count = cursor.execute(f"select count(*) from {table}").fetchone()[0]
         print(f"Rows in RAW.USASPENDING.{table.upper()}: {count}")
 
+    # Only reached if COPY succeeded; archived files are never re-uploaded.
+    archive_dir = raw_dir / "loaded"
+    archive_dir.mkdir(exist_ok=True)
+    for path in files:
+        path.rename(archive_dir / path.name)
+    print(f"Archived {len(files)} files to {archive_dir}")
+
 
 if __name__ == "__main__":
     main()
