@@ -37,6 +37,7 @@ flowchart LR
 ## Data quality
 
 - **57 dbt tests**: uniqueness, not-null, accepted values, relationships from the fact table to every dimension, and row-count equality between staging and the fact table.
+- - **Load guards**: two source tests fail the build if any raw file is loaded more than once, so a duplicate `COPY` can't silently double the totals.
 - **Reconciliation test**: the state-sector mart must total exactly to the fact table.
 - **Known warning**: 117 transactions reference awards not returned by the award search. They are kept as inferred award members instead of being dropped, and the test warns rather than fails below a set threshold.
 - Every model and column is documented in dbt, with shared definitions written once as doc blocks.
