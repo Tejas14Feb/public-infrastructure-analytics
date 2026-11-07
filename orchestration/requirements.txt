@@ -1,0 +1,3 @@
+# Airflow runs in its own environment, separate from the main project.
+# Install with the matching constraints file (see orchestration setup steps).
+apache-airflow==3.3.2
