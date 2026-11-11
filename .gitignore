@@ -239,3 +239,6 @@ data/
 
 # Airflow local runtime (config, SQLite DB, logs)
 orchestration/airflow_home/
+
+# Export folder for dashboards
+dashboard/data/
