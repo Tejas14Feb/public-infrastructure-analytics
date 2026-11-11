@@ -46,4 +46,19 @@ jobs:
 
       - name: Build and test in prod
         run: uv run dbt build --target prod
+        
+      - name: Export reporting marts to CSV
+        working-directory: .
+        run: uv run python dashboard/export_reporting_marts.py
+        env:
+          DBT_SNOWFLAKE_USER: DBT_SVC
+          DBT_SNOWFLAKE_ROLE: TRANSFORMER
+          DBT_SNOWFLAKE_WAREHOUSE: ANALYTICS_WH
+
+      - name: Upload reporting mart snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: reporting-marts-${{ github.sha }}
+          path: dashboard/data/*.csv
+          if-no-files-found: error
 
