@@ -30,13 +30,25 @@ by_recipient as (
 
 select
     *,
+
+    -- Share of the contract money that went out in this state and year.
+    -- The base is positive net obligations only, because recipients with a
+    -- net negative (deobligations) would shrink the total and inflate shares.
+    -- Recipients with zero or negative net get no share (null).
     round(
-        100 * net_obligations
-        / nullif(sum(net_obligations) over (partition by state_code, fiscal_year), 0),
+        100 * iff(net_obligations > 0, net_obligations, null)
+        / nullif(
+            sum(iff(net_obligations > 0, net_obligations, 0))
+                over (partition by state_code, fiscal_year),
+            0
+        ),
         1
     ) as market_share_pct,
+
     rank() over (
         partition by state_code, fiscal_year
         order by net_obligations desc
     ) as rank_in_state_year
+
 from by_recipient
+
