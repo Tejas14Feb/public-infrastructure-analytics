@@ -1,0 +1,17 @@
+version: 2
+
+exposures:
+  - name: midwest_dot_spending_dashboard
+    label: Midwest DOT Infrastructure Spending
+    type: dashboard
+    maturity: high
+    url: https://public.tableau.com/app/profile/tejas.budharamu/viz/MidwestDOTInfrastructureSpendingFY2019toPresent/Dashboard
+    description: >
+      Public Tableau dashboard built from the three reporting marts. It is refreshed from
+      the CSV snapshot that each production deploy uploads as a workflow artifact.
+    depends_on:
+      - ref('mart_spending_by_state_sector')
+      - ref('mart_spending_trends')
+      - ref('mart_top_contract_recipients')
+    owner:
+      name: Tejas Budharamu

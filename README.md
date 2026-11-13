@@ -7,6 +7,20 @@
 
 An end-to-end analytics engineering project on federal Department of Transportation spending in five Midwest states (SD, IA, NE, MN, IL), FY2019 to present. Data comes from the USAspending API, lands in Snowflake, is modeled with dbt into a tested star schema, and refreshes daily on a schedule.
 
+## Dashboard
+
+[![Dashboard preview](dashboard/dashboard.png)](https://public.tableau.com/app/profile/tejas.budharamu/viz/MidwestDOTInfrastructureSpendingFY2019toPresent/Dashboard)
+
+**[Open the interactive dashboard on Tableau Public](https://public.tableau.com/app/profile/tejas.budharamu/viz/MidwestDOTInfrastructureSpendingFY2019toPresent/Dashboard)**
+
+The dashboard is built only from the three reporting marts and answers the project's business questions:
+
+- How spending by sector changed before and after the 2021 infrastructure bill
+- How spending is split across the five states
+- Which companies receive the most contract money in each state and year
+
+**How the data gets there.** Tableau Public can't connect to Snowflake, so every production deploy exports the reporting marts to CSV and uploads them as a workflow artifact named `reporting-marts-<commit sha>`. To refresh the dashboard, download the latest artifact, refresh the data sources in Tableau, and republish. In a production setup, the same deploy step would instead trigger a Tableau extract refresh through the REST API.
+
 ## Business questions
 
 1. **Where is the money going?** Net obligations by state, sector, and fiscal year, split into grants and contracts.
